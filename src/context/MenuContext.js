@@ -11,8 +11,11 @@ export const MenuProvider = ({ children }) => {
   const [activePage, setActivePage] = useState('page1');
   const [isLoaded, setIsLoaded] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const hasInitialized = React.useRef(false);
 
   useEffect(() => {
+    if (hasInitialized.current) return;
+    
     const savedData = localStorage.getItem('urban_bites_menu_v3');
     if (savedData) {
       try {
@@ -45,21 +48,18 @@ export const MenuProvider = ({ children }) => {
         };
 
         const currentVersion = parsed.version || 0;
-        const TARGET_VERSION = 31;
+        const TARGET_VERSION = 32;
 
-        // Use a slight timeout or functional update to satisfy strict linting 
-        // that discourages setting state immediately in useEffect
-        setTimeout(() => {
-          setMenuData({
-            ...parsed,
-            restaurantName: INITIAL_MENU_DATA.restaurantName,
-            tagline: INITIAL_MENU_DATA.tagline,
-            contact: INITIAL_MENU_DATA.contact,
-            page1: syncFromInitial(savedP1, INITIAL_MENU_DATA.page1),
-            page2: syncFromInitial(savedP2, INITIAL_MENU_DATA.page2),
-            version: TARGET_VERSION
-          });
-        }, 0);
+        setMenuData({
+          ...parsed,
+          restaurantName: INITIAL_MENU_DATA.restaurantName,
+          tagline: INITIAL_MENU_DATA.tagline,
+          contact: INITIAL_MENU_DATA.contact,
+          page1: syncFromInitial(savedP1, INITIAL_MENU_DATA.page1),
+          page2: syncFromInitial(savedP2, INITIAL_MENU_DATA.page2),
+          version: TARGET_VERSION
+        });
+        hasInitialized.current = true;
       } catch (e) {
         console.error("Failed to parse saved menu data", e);
       }
