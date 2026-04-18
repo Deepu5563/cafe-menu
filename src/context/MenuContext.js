@@ -29,7 +29,7 @@ export const MenuProvider = ({ children }) => {
         return [...updatedSaved, ...brandNew];
       };
 
-      const TARGET_VERSION = 33;
+      const TARGET_VERSION = 34;
       if (parsed.version === TARGET_VERSION) return parsed;
 
       // Perform a safe merge for the new version
@@ -55,7 +55,8 @@ export const MenuProvider = ({ children }) => {
 
   // Still need a small effect to handle the "Flash of Unbalanced Content" hydrate
   useEffect(() => {
-    setIsLoaded(true);
+    const timer = setTimeout(() => setIsLoaded(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
