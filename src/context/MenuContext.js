@@ -1,14 +1,25 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useSyncExternalStore } from 'react';
 import { INITIAL_MENU_DATA } from '@/lib/initialData';
 
 const MenuContext = createContext();
 
+// THE ARCHITECTURAL FIX: useSyncExternalStore
+// This is the React 19 recommended way to detect hydration/client-side state.
+// It avoids the "Cascading Render" error by providing a server value and a client value
+// that React reconciles during the initial hydration pass.
+function useIsMounted() {
+  return useSyncExternalStore(
+    () => () => {}, // No-op subscription (mount state never changes after initial mount)
+    () => true,     // Client snapshot: always true
+    () => false     // Server snapshot: always false (during hydration)
+  );
+}
+
 export const MenuProvider = ({ children }) => {
   // Use Lazy Initializer to satisfy React 19 / Next 15+ Strict Mode
   const [menuData, setMenuData] = useState(() => {
-    // Return early if we are on the server (SSR)
     if (typeof window === 'undefined') return INITIAL_MENU_DATA;
 
     try {
@@ -29,10 +40,9 @@ export const MenuProvider = ({ children }) => {
         return [...updatedSaved, ...brandNew];
       };
 
-      const TARGET_VERSION = 34;
+      const TARGET_VERSION = 35;
       if (parsed.version === TARGET_VERSION) return parsed;
 
-      // Perform a safe merge for the new version
       return {
         ...parsed,
         restaurantName: INITIAL_MENU_DATA.restaurantName,
@@ -50,15 +60,12 @@ export const MenuProvider = ({ children }) => {
 
   const [isAdmin, setIsAdmin] = useState(false);
   const [activePage, setActivePage] = useState('page1');
-  const [isLoaded, setIsLoaded] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  
+  // Use the new Pro-grade hydration hook
+  const isLoaded = useIsMounted();
 
-  // Still need a small effect to handle the "Flash of Unbalanced Content" hydrate
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoaded(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
-
+  // Pure persistence effect - no state setting here, just side-effects
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('urban_bites_menu_v3', JSON.stringify(menuData));
