@@ -1,6 +1,6 @@
 export const INITIAL_MENU_DATA = {
   restaurantName: "THE URBAN BITES",
-  tagline: "Crafted with Passion & Serve with Style",
+  tagline: "Fuel Your Craves",
   logo: null,
   mainImage: null,
   contact: {

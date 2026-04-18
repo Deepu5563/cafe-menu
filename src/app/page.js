@@ -142,7 +142,7 @@ function MenuApp() {
                   </div>
 
                   {/* Premium 3-Column Grid - Compact Gaps */}
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-x-7 gap-y-4 content-start">
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-x-7 gap-y-4 content-start">
                     {page1Cols.map((column, colIdx) => (
                       <div key={`col-${colIdx}`} className="flex flex-col gap-4">
                         {column.map((section, index) => (
@@ -166,7 +166,7 @@ function MenuApp() {
               <MenuPage pageKey="page2">
                 <div className="h-full flex flex-col pt-0">
                   {/* Grid for Page 2 - Also balanced now */}
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-x-7 gap-y-4">
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-x-7 gap-y-4">
                     {page2Cols.map((column, colIdx) => (
                       <div key={`page2-col-${colIdx}`} className="flex flex-col gap-4">
                         {column.map((section, index) => (
