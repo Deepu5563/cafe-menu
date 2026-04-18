@@ -45,7 +45,7 @@ export default function AdminDrawer() {
 
   return (
     <div 
-      className="min-w-[280px] w-[280px] h-screen sticky top-0 bg-[#f8f9fb] flex flex-col no-print border-r border-[#e5e7eb] z-50 pr-4 pt-8 pb-6"
+      className="w-64 flex-shrink-0 h-screen sticky top-0 bg-[#f8f9fb] flex flex-col no-print border-r border-[#e5e7eb] z-50 pr-4 pt-8 pb-6"
       style={{ paddingLeft: '40px' }}
     >
       

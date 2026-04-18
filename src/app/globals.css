@@ -50,41 +50,66 @@
 
 @layer utilities {
   .a4-page {
-    width: 100%;
-    max-width: 297mm;
+    width: 100% !important;
     min-height: auto;
-    @media (min-width: 1024px) {
-      min-height: 210mm;
-    }
-    margin: 0 auto;
-    background: var(--cream);
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.03);
-    position: relative;
-    overflow: hidden;
-    border: 1px solid var(--soft-gold);
-    /* 1px solid #d8cbb5 */
-    display: flex;
-    flex-direction: column;
-    padding: 24px 16px !important;
-    @media (min-width: 768px) {
-      padding: 24px 35px !important;
-    }
-    /* Reclaiming vertical space */
+    margin: 0 !important;
+    background: transparent !important;
+    /* Digital view is transparent to utilize full dashboard space */
+    border: none !important;
+    /* Removed 'paper' borders on screen */
+    box-shadow: none !important;
     box-sizing: border-box !important;
+    padding: 0px 0px 5px 0px !important;
+
+    /* Lock back to A4 Landscape ONLY for printing */
+    @media print {
+      background: var(--cream) !important;
+      width: 297mm !important;
+      height: 210mm !important;
+      min-height: 210mm !important;
+      max-height: 210mm !important;
+      padding: 5mm 8mm !important;
+      border: 1px solid var(--soft-gold) !important;
+      box-shadow: none !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+    }
+  }
+
+  /* Surgical Print Overrides - Zero JSX changes */
+  @media print {
+    .menu-card {
+      padding: 4px 10px !important;
+      margin-bottom: 5px !important;
+    }
+    .menu-card img {
+      max-height: 75px !important;
+      margin-bottom: 2px !important;
+    }
+    .menu-card div > div > span, 
+    .menu-card div > div > div > span {
+      font-size: 11px !important;
+    }
+    .menu-card [class*="text-[18px]"] {
+      font-size: 14px !important;
+    }
+    .print-grid {
+      gap: 12px !important;
+    }
   }
 
   .menu-card {
     background: var(--beige);
     border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.03);
-    /* PRECISE shadow: 0.03 opacity */
+    /* Restored original premium curvature */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     border: 1px solid var(--card-border);
-    /* 1px solid #e6dcc9 */
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    /* Ensure equal height behavior */
+    padding: 12px 16px !important;
+    /* Balanced density with original feel */
     width: 100%;
   }
 
@@ -100,25 +125,63 @@
     margin: 0;
   }
 
+  html,
   body {
-    background: white;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
   }
 
   .no-print {
     display: none !important;
   }
 
-  .a4-page {
-    width: 297mm;
-    height: 210mm;
-    margin: 0;
-    box-shadow: none;
-    break-after: page;
-    /* Force next sheet to new paper */
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-    border: 1px solid var(--soft-gold);
+  .print-only {
+    display: block !important;
   }
+
+  /* RIGID LANDSCAPE PRINT SHELL */
+  .a4-print-sheet {
+    width: 297mm !important;
+    min-height: 210mm !important;
+    padding: 6mm 10mm !important;
+    margin: 0 !important;
+    background: #FDFBF7 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  .print-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 15px !important;
+  }
+
+  .print-image-compact img {
+    height: 75px !important;
+    /* Shorter for Landscape */
+    object-fit: cover !important;
+  }
+
+  .print-footer {
+    width: 100% !important;
+    border-top: 1px solid #d8cbb5 !important;
+    padding-top: 12px !important;
+    /* Increased for vertical spread */
+    padding-bottom: 8px !important;
+    font-size: 8.5px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.15em !important;
+  }
+}
+
+.print-only {
+  display: none;
 }
 
 html,

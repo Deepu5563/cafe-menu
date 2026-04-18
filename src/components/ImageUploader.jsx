@@ -16,25 +16,25 @@ export default function ImageUploader({ currentImage, fit = 'cover', onSave, onT
   if (!isAdmin) {
     if (!currentImage) return null;
     return (
-      <div className="w-full aspect-[16/9] mb-4 overflow-hidden rounded-xl shadow-inner bg-[#f3f4f6]">
-        <img 
-          src={currentImage} 
-          alt="Section visual" 
-          className={`w-full h-full ${fit === 'contain' ? 'object-contain' : 'object-cover'}`}
+      <div className="w-full max-h-[110px] aspect-video print:aspect-[21/9] print:max-h-[100px] mb-1 print:mb-2 overflow-hidden rounded-xl shadow-inner bg-[#f3f4f6]">
+        <img
+          src={currentImage}
+          alt="Section visual"
+          className={`w-full h-full ${fit === 'contain' ? 'object-contain' : 'object-cover'} print:object-cover`}
         />
       </div>
     );
   }
 
   return (
-    <div className="relative group w-full mb-4">
+    <div className="relative group w-full mb-1">
       {/* Existing Image or Placeholder */}
-      <div className="w-full aspect-[16/9] overflow-hidden rounded-xl bg-[#f3f4f6] relative border-2 border-dashed border-gray-200 group-hover:border-gold transition-colors">
+      <div className="w-full max-h-[110px] aspect-video print:aspect-[21/9] print:max-h-[100px] overflow-hidden rounded-xl bg-[#f3f4f6] relative border-2 border-dashed border-gray-200 group-hover:border-gold transition-colors">
         {currentImage ? (
-          <img 
-            src={currentImage} 
-            alt="Section visual" 
-            className={`w-full h-full ${fit === 'contain' ? 'object-contain' : 'object-cover'} transition-all duration-300`}
+          <img
+            src={currentImage}
+            alt="Section visual"
+            className={`w-full h-full ${fit === 'contain' ? 'object-contain' : 'object-cover'} print:object-cover transition-all duration-300`}
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
@@ -52,7 +52,7 @@ export default function ImageUploader({ currentImage, fit = 'cover', onSave, onT
             <Camera size={14} />
             Update Photo
           </button>
-          
+
           {currentImage && (
             <button
               onClick={onToggleFit}
@@ -85,13 +85,13 @@ export default function ImageUploader({ currentImage, fit = 'cover', onSave, onT
                   className="flex-1 bg-gray-50 border border-gray-200 rounded px-3 py-1.5 text-[11px] outline-none focus:border-gold"
                   autoFocus
                 />
-                <button 
+                <button
                   onClick={handleSave}
                   className="bg-deep-green text-white p-2 rounded hover:bg-black transition-colors"
                 >
                   <Check size={14} />
                 </button>
-                <button 
+                <button
                   onClick={() => setIsEditing(false)}
                   className="bg-gray-100 text-gray-500 p-2 rounded hover:bg-gray-200 transition-colors"
                 >
