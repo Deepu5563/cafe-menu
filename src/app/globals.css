@@ -1,14 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&family=Inter:wght@300;400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 
 :root {
-
   --sage: #E6EFE9;
-  --cream: #F5F1E8;
+  --cream: #FDFBF7;
+  --beige: #F8F5EF;
+  /* Refined beige */
   --deep-green: #1F3D2B;
+  --muted-green: #4A6753;
   --dark-gray: #2E2E2E;
   --gold: #C8A96A;
-  
+  --soft-gold: #d8cbb5;
+  /* Precise requested color */
+  --card-border: #e6dcc9;
+  /* Precise requested color */
+
   --background: var(--cream);
   --foreground: var(--deep-green);
 }
@@ -16,13 +22,16 @@
 @theme inline {
   --color-sage: var(--sage);
   --color-cream: var(--cream);
+  --color-beige: var(--beige);
   --color-deep-green: var(--deep-green);
+  --color-muted-green: var(--muted-green);
   --color-dark-gray: var(--dark-gray);
   --color-gold: var(--gold);
-  
+  --color-soft-gold: var(--soft-gold);
+  --color-card-border: var(--card-border);
+
   --font-serif: "Montserrat", sans-serif;
   --font-sans: "Inter", sans-serif;
-
 
   --animate-fade-in-up: fade-in-up 0.5s ease-out;
 
@@ -31,6 +40,7 @@
       opacity: 0;
       transform: translateY(20px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -40,52 +50,94 @@
 
 @layer utilities {
   .a4-page {
-    width: 210mm;
-    min-height: 297mm;
+    width: 297mm;
+    min-height: 210mm;
     margin: 0 auto;
     background: var(--cream);
-    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.03);
     position: relative;
     overflow: hidden;
+    border: 1px solid var(--soft-gold);
+    /* 1px solid #d8cbb5 */
+    display: flex;
+    flex-direction: column;
+    padding: 24px 35px !important;
+    /* Reclaiming vertical space */
+    box-sizing: border-box !important;
+  }
+
+  .menu-card {
+    background: var(--beige);
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.03);
+    /* PRECISE shadow: 0.03 opacity */
+    border: 1px solid var(--card-border);
+    /* 1px solid #e6dcc9 */
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* Ensure equal height behavior */
+    width: 100%;
+  }
+
+  .menu-card:hover {
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
   }
 }
 
 @media print {
   @page {
-    size: A4;
+    size: A4 landscape;
     margin: 0;
   }
+
   body {
     background: white;
   }
+
   .no-print {
     display: none !important;
   }
+
   .a4-page {
-    width: 210mm;
-    height: 297mm;
+    width: 297mm;
+    height: 210mm;
     margin: 0;
     box-shadow: none;
-    page-break-after: always;
+    break-after: page;
+    /* Force next sheet to new paper */
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+    border: 1px solid var(--soft-gold);
   }
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 * {
   box-sizing: border-box;
-  padding: 0;
-  margin: 0;
 }
 
 body {
-  background-color: var(--background);
+  background-color: var(--sage);
+  /* Background for the dashboard view */
   color: var(--foreground);
   font-family: var(--font-sans);
   min-height: 100vh;
 }
 
-h1, h2, h3, h4, .font-serif {
+h1,
+h2,
+h3,
+h4,
+.font-serif {
   font-family: var(--font-serif);
 }
 
@@ -93,13 +145,16 @@ h1, h2, h3, h4, .font-serif {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--cream);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--gold);
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--deep-green);
 }
@@ -107,4 +162,3 @@ h1, h2, h3, h4, .font-serif {
 .perspective-1000 {
   perspective: 1000px;
 }
-

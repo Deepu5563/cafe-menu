@@ -1,66 +1,107 @@
 "use client";
 
-import React, { useRef } from 'react';
-import { useMenu } from '@/context/MenuContext';
-import { Camera, RefreshCw } from 'lucide-react';
+import React, { useState } from 'react';
+import { Camera, X, Check, Maximize2, Minimize2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-export default function ImageUploader({ 
-  src, 
-  onUpload, 
-  className = "",
-  aspectRatio = "aspect-square"
-}) {
-  const { isAdmin } = useMenu();
-  const fileInputRef = useRef(null);
+export default function ImageUploader({ currentImage, fit = 'cover', onSave, onToggleFit, isAdmin }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [url, setUrl] = useState(currentImage || '');
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        onUpload(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleSave = () => {
+    onSave(url);
+    setIsEditing(false);
   };
 
   if (!isAdmin) {
-    if (!src) return null;
+    if (!currentImage) return null;
     return (
-      <div className={`overflow-hidden rounded-2xl ${aspectRatio} ${className}`}>
-        <img src={src} alt="Uploaded" className="w-full h-full object-cover" />
+      <div className="w-full aspect-[16/9] mb-4 overflow-hidden rounded-xl shadow-inner bg-[#f3f4f6]">
+        <img 
+          src={currentImage} 
+          alt="Section visual" 
+          className={`w-full h-full ${fit === 'contain' ? 'object-contain' : 'object-cover'}`}
+        />
       </div>
     );
   }
 
   return (
-    <div className={`relative group overflow-hidden rounded-2xl bg-sage/30 border-2 border-dashed border-sage hover:border-gold transition-all ${aspectRatio} ${className}`}>
-      {src ? (
-        <>
-          <img src={src} alt="Uploaded" className="w-full h-full object-cover group-hover:opacity-75 transition-opacity" />
-          <div 
-            onClick={() => fileInputRef.current?.click()}
-            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/20 cursor-pointer transition-opacity"
-          >
-            <RefreshCw className="text-white w-8 h-8" />
+    <div className="relative group w-full mb-4">
+      {/* Existing Image or Placeholder */}
+      <div className="w-full aspect-[16/9] overflow-hidden rounded-xl bg-[#f3f4f6] relative border-2 border-dashed border-gray-200 group-hover:border-gold transition-colors">
+        {currentImage ? (
+          <img 
+            src={currentImage} 
+            alt="Section visual" 
+            className={`w-full h-full ${fit === 'contain' ? 'object-contain' : 'object-cover'} transition-all duration-300`}
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+            <Camera size={32} />
+            <span className="text-[10px] uppercase font-bold tracking-widest mt-2">Add Image</span>
           </div>
-        </>
-      ) : (
-        <div 
-          onClick={() => fileInputRef.current?.click()}
-          className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-gold/10"
-        >
-          <Camera className="text-deep-green/40 w-10 h-10 mb-2" />
-          <span className="text-xs font-medium text-deep-green/60">Upload Image</span>
+        )}
+
+        {/* Overlay Trigger */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-2 transition-opacity z-10 no-print">
+          <button
+            onClick={() => setIsEditing(true)}
+            className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-white/40 transition-all"
+          >
+            <Camera size={14} />
+            Update Photo
+          </button>
+          
+          {currentImage && (
+            <button
+              onClick={onToggleFit}
+              className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-white/40 transition-all"
+            >
+              {fit === 'cover' ? <Maximize2 size={14} /> : <Minimize2 size={14} />}
+              {fit === 'cover' ? 'Show Full Glass' : 'Fill Container'}
+            </button>
+          )}
         </div>
-      )}
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        onChange={handleFileChange} 
-        accept="image/*" 
-        className="hidden" 
-      />
+      </div>
+
+      {/* Editing Modal/Popover */}
+      <AnimatePresence>
+        {isEditing && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute top-2 left-2 right-2 bg-white/95 backdrop-blur-lg p-3 rounded-lg shadow-2xl border border-gray-100 z-50 no-print"
+          >
+            <div className="flex flex-col gap-2">
+              <p className="text-[9px] font-black uppercase tracking-widest text-deep-green">Image URL</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://images.unsplash.com/..."
+                  className="flex-1 bg-gray-50 border border-gray-200 rounded px-3 py-1.5 text-[11px] outline-none focus:border-gold"
+                  autoFocus
+                />
+                <button 
+                  onClick={handleSave}
+                  className="bg-deep-green text-white p-2 rounded hover:bg-black transition-colors"
+                >
+                  <Check size={14} />
+                </button>
+                <button 
+                  onClick={() => setIsEditing(false)}
+                  className="bg-gray-100 text-gray-500 p-2 rounded hover:bg-gray-200 transition-colors"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

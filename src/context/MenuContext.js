@@ -10,12 +10,53 @@ export const MenuProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [activePage, setActivePage] = useState('page1');
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
     const savedData = localStorage.getItem('urban_bites_menu_v3');
     if (savedData) {
       try {
-        setMenuData(JSON.parse(savedData));
+        const parsed = JSON.parse(savedData);
+        
+        // Data Sync Logic: Merge missing sections from INITIAL_MENU_DATA (the code) 
+        // into the user's localized state (the browser)
+        const savedP1 = parsed.page1 || [];
+        const savedP2 = parsed.page2 || [];
+        const allSavedIds = new Set([...savedP1, ...savedP2].map(s => s.id));
+        
+        const syncFromInitial = (savedArr, initialArr) => {
+          const initialMap = new Map(initialArr.map(s => [s.id, s]));
+          
+          const updatedSaved = savedArr.map(s => {
+            const initialMatch = initialMap.get(s.id);
+            // Smart Merge: Use code state for defaults (fit, etc) but keep user overrides
+            if (!initialMatch) return s;
+            return {
+              ...initialMatch,
+              ...s, // Keep user's image if they uploaded one
+              items: s.items, // Keep user's items
+            };
+          });
+
+          const savedIds = new Set(savedArr.map(s => s.id));
+          const brandNew = initialArr.filter(s => !savedIds.has(s.id));
+          
+          return [...updatedSaved, ...brandNew];
+        };
+
+        const currentVersion = parsed.version || 0;
+        const TARGET_VERSION = 29;
+
+        setMenuData({
+          ...parsed,
+          restaurantName: INITIAL_MENU_DATA.restaurantName,
+          tagline: INITIAL_MENU_DATA.tagline,
+          contact: INITIAL_MENU_DATA.contact,
+          // Smart Merge Fix: Ensure new fields like 'fit' from code match user's state
+          page1: syncFromInitial(savedP1, INITIAL_MENU_DATA.page1),
+          page2: syncFromInitial(savedP2, INITIAL_MENU_DATA.page2),
+          version: TARGET_VERSION
+        });
       } catch (e) {
         console.error("Failed to parse saved menu data", e);
       }
@@ -106,6 +147,8 @@ export const MenuProvider = ({ children }) => {
       setIsAdmin,
       activePage,
       setActivePage,
+      isDrawerOpen,
+      setIsDrawerOpen,
       updateMenuData,
       addSection,
       deleteSection,

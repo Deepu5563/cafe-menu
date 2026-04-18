@@ -8,21 +8,24 @@ export default function BrandingSection() {
   const { menuData, updateMenuData } = useMenu();
 
   return (
-    <div className="w-full h-full flex flex-col justify-center items-center py-12 space-y-8 bg-sage/10 rounded-xl">
-      <div className="text-center space-y-4">
-        {/* Simplified Aesthetic Motif */}
-        <div className="flex items-center justify-center gap-4 opacity-30">
-          <div className="w-8 h-px bg-deep-green" />
-          <div className="w-2 h-2 rounded-full border border-deep-green" />
-          <div className="w-8 h-px bg-deep-green" />
-        </div>
+    <div className="w-full flex flex-col justify-center items-center py-2 bg-sage/5 rounded-xl">
+      <div className="text-center">
 
-        <h1 className="text-5xl md:text-6xl font-serif font-extrabold tracking-[0.2em] text-deep-green leading-tight uppercase">
+        <h1 className="text-2xl md:text-3xl font-serif font-extrabold tracking-[0.25em] text-deep-green leading-tight uppercase">
           <EditableText 
             value={menuData.restaurantName} 
             onSave={(val) => updateMenuData({ restaurantName: val })}
           />
         </h1>
+        
+        {/* Spaced Tagline - Premium Feel */}
+        <div className="pt-1">
+          <EditableText
+            value={menuData.tagline}
+            onSave={(val) => updateMenuData({ tagline: val })}
+            className="text-[10px] font-sans font-medium text-muted-green uppercase tracking-[0.4em] opacity-80"
+          />
+        </div>
       </div>
     </div>
   );
