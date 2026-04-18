@@ -6,159 +6,108 @@ import { INITIAL_MENU_DATA } from '@/lib/initialData';
 const MenuContext = createContext();
 
 export const MenuProvider = ({ children }) => {
-  const [menuData, setMenuData] = useState(INITIAL_MENU_DATA);
+  // Use Lazy Initializer to satisfy React 19 / Next 15+ Strict Mode
+  const [menuData, setMenuData] = useState(() => {
+    // Return early if we are on the server (SSR)
+    if (typeof window === 'undefined') return INITIAL_MENU_DATA;
+
+    try {
+      const savedData = localStorage.getItem('urban_bites_menu_v3');
+      if (!savedData) return INITIAL_MENU_DATA;
+
+      const parsed = JSON.parse(savedData);
+      
+      const syncFromInitial = (savedArr, initialArr) => {
+        const initialMap = new Map(initialArr.map(s => [s.id, s]));
+        const updatedSaved = savedArr.map(s => {
+          const initialMatch = initialMap.get(s.id);
+          if (!initialMatch) return s;
+          return { ...initialMatch, ...s, items: s.items };
+        });
+        const savedIds = new Set(savedArr.map(s => s.id));
+        const brandNew = initialArr.filter(s => !savedIds.has(s.id));
+        return [...updatedSaved, ...brandNew];
+      };
+
+      const TARGET_VERSION = 33;
+      if (parsed.version === TARGET_VERSION) return parsed;
+
+      // Perform a safe merge for the new version
+      return {
+        ...parsed,
+        restaurantName: INITIAL_MENU_DATA.restaurantName,
+        tagline: INITIAL_MENU_DATA.tagline,
+        contact: INITIAL_MENU_DATA.contact,
+        page1: syncFromInitial(parsed.page1 || [], INITIAL_MENU_DATA.page1),
+        page2: syncFromInitial(parsed.page2 || [], INITIAL_MENU_DATA.page2),
+        version: TARGET_VERSION
+      };
+    } catch (e) {
+      console.error("Initialization Sync Failed:", e);
+      return INITIAL_MENU_DATA;
+    }
+  });
+
   const [isAdmin, setIsAdmin] = useState(false);
   const [activePage, setActivePage] = useState('page1');
   const [isLoaded, setIsLoaded] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const hasInitialized = React.useRef(false);
 
+  // Still need a small effect to handle the "Flash of Unbalanced Content" hydrate
   useEffect(() => {
-    if (hasInitialized.current) return;
-    
-    const savedData = localStorage.getItem('urban_bites_menu_v3');
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        
-        // Data Sync Logic: Merge missing sections from INITIAL_MENU_DATA (the code) 
-        // into the user's localized state (the browser)
-        const savedP1 = parsed.page1 || [];
-        const savedP2 = parsed.page2 || [];
-        const allSavedIds = new Set([...savedP1, ...savedP2].map(s => s.id));
-        
-        const syncFromInitial = (savedArr, initialArr) => {
-          const initialMap = new Map(initialArr.map(s => [s.id, s]));
-          
-          const updatedSaved = savedArr.map(s => {
-            const initialMatch = initialMap.get(s.id);
-            // Smart Merge: Use code state for defaults (fit, etc) but keep user overrides
-            if (!initialMatch) return s;
-            return {
-              ...initialMatch,
-              ...s, // Keep user's image if they uploaded one
-              items: s.items, // Keep user's items
-            };
-          });
-
-          const savedIds = new Set(savedArr.map(s => s.id));
-          const brandNew = initialArr.filter(s => !savedIds.has(s.id));
-          
-          return [...updatedSaved, ...brandNew];
-        };
-
-        const currentVersion = parsed.version || 0;
-        const TARGET_VERSION = 32;
-
-        setMenuData({
-          ...parsed,
-          restaurantName: INITIAL_MENU_DATA.restaurantName,
-          tagline: INITIAL_MENU_DATA.tagline,
-          contact: INITIAL_MENU_DATA.contact,
-          page1: syncFromInitial(savedP1, INITIAL_MENU_DATA.page1),
-          page2: syncFromInitial(savedP2, INITIAL_MENU_DATA.page2),
-          version: TARGET_VERSION
-        });
-        hasInitialized.current = true;
-      } catch (e) {
-        console.error("Failed to parse saved menu data", e);
-      }
-    }
     setIsLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (isLoaded) {
+    if (typeof window !== 'undefined') {
       localStorage.setItem('urban_bites_menu_v3', JSON.stringify(menuData));
     }
-  }, [menuData, isLoaded]);
-
-
-  const updateMenuData = (updates) => {
-    setMenuData(prev => ({ ...prev, ...updates }));
-  };
-
-  const addSection = (page) => {
-    const newSection = {
-      id: `sec_${Date.now()}`,
-      title: "New Section",
-      image: null,
-      items: []
-    };
-    setMenuData(prev => ({
-      ...prev,
-      [page]: [...prev[page], newSection]
-    }));
-  };
-
-  const deleteSection = (page, sectionId) => {
-    if (window.confirm("Are you sure you want to delete this section?")) {
-      setMenuData(prev => ({
-        ...prev,
-        [page]: prev[page].filter(s => s.id !== sectionId)
-      }));
-    }
-  };
+  }, [menuData]);
 
   const updateSection = (page, sectionId, updates) => {
     setMenuData(prev => ({
       ...prev,
-      [page]: prev[page].map(s => s.id === sectionId ? { ...s, ...updates } : s)
-    }));
-  };
-
-  const addItem = (page, sectionId) => {
-    const newItem = {
-      id: `item_${Date.now()}`,
-      name: "New Item",
-      description: "Item description",
-      price: "0"
-    };
-    setMenuData(prev => ({
-      ...prev,
-      [page]: prev[page].map(s => 
-        s.id === sectionId ? { ...s, items: [...s.items, newItem] } : s
+      [page]: prev[page].map(section => 
+        section.id === sectionId ? { ...section, ...updates } : section
       )
     }));
   };
 
-  const deleteItem = (page, sectionId, itemId) => {
+  const updateMenuItem = (page, sectionId, itemId, updates) => {
     setMenuData(prev => ({
       ...prev,
-      [page]: prev[page].map(s => 
-        s.id === sectionId ? { ...s, items: s.items.filter(i => i.id !== itemId) } : s
+      [page]: prev[page].map(section => 
+        section.id === sectionId ? {
+          ...section,
+          items: section.items.map(item => 
+            item.id === itemId ? { ...item, ...updates } : item
+          )
+        } : section
       )
     }));
   };
 
-  const updateItem = (page, sectionId, itemId, updates) => {
+  const updateContact = (updates) => {
     setMenuData(prev => ({
       ...prev,
-      [page]: prev[page].map(s => 
-        s.id === sectionId ? {
-          ...s,
-          items: s.items.map(i => i.id === itemId ? { ...i, ...updates } : i)
-        } : s
-      )
+      contact: { ...prev.contact, ...updates }
     }));
   };
 
   return (
-    <MenuContext.Provider value={{
-      menuData,
-      isAdmin,
+    <MenuContext.Provider value={{ 
+      menuData, 
+      setMenuData, 
+      updateSection, 
+      updateMenuItem,
+      updateContact,
+      isAdmin, 
       setIsAdmin,
       activePage,
       setActivePage,
+      isLoaded,
       isDrawerOpen,
-      setIsDrawerOpen,
-      updateMenuData,
-      addSection,
-      deleteSection,
-      updateSection,
-      addItem,
-      deleteItem,
-      updateItem
+      setIsDrawerOpen
     }}>
       {children}
     </MenuContext.Provider>
