@@ -59,8 +59,8 @@ export const INITIAL_MENU_DATA = {
       "fit": "cover",
       "items": [
         { "id": "item22", "name": "Onion Pizza", "description": "", "price": "99" },
-        { "id": "item24", "name": "Cheese Corn Pizza", "description": "", "price": "139" },
         { "id": "item25", "name": "Tomato Pizza", "description": "", "price": "110" },
+        { "id": "item24", "name": "Cheese Corn Pizza", "description": "", "price": "139" },
         { "id": "item26", "name": "Veg Loaded Pizza", "description": "", "price": "159" },
         { "id": "item27", "name": "Corn & Capsicum Pizza", "description": "", "price": "149" },
         { "id": "item28", "name": "Margherita Pizza", "description": "", "price": "139" },

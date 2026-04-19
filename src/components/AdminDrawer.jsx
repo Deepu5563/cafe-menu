@@ -16,7 +16,8 @@ export default function AdminDrawer() {
     setIsAdmin,
     addSection,
     activePage,
-    setActivePage
+    setActivePage,
+    reseedData
   } = useMenu();
 
   const menuActions = [
@@ -39,6 +40,13 @@ export default function AdminDrawer() {
       label: 'Print Menu',
       icon: Printer,
       action: () => window.print(),
+      active: false,
+    },
+    {
+      id: 'reset',
+      label: 'Reset All Data',
+      icon: ShieldCheck,
+      action: () => reseedData(),
       active: false,
     }
   ];
@@ -72,8 +80,8 @@ export default function AdminDrawer() {
             <button
               onClick={() => setActivePage('page1')}
               className={`h-10 w-full flex items-center justify-start px-3 rounded-lg transition-all text-[11px] font-serif font-black uppercase tracking-[0.2em] ${activePage === 'page1'
-                  ? 'bg-[#111827] text-white shadow-xl'
-                  : 'bg-white text-[#4b5563] border border-[#e5e7eb] hover:bg-[#f1f5f9]'
+                ? 'bg-[#111827] text-white shadow-xl'
+                : 'bg-white text-[#4b5563] border border-[#e5e7eb] hover:bg-[#f1f5f9]'
                 }`}
             >
               Sheet One
@@ -81,8 +89,8 @@ export default function AdminDrawer() {
             <button
               onClick={() => setActivePage('page2')}
               className={`h-10 w-full flex items-center justify-start px-3 rounded-lg transition-all text-[11px] font-serif font-black uppercase tracking-[0.2em] ${activePage === 'page2'
-                  ? 'bg-[#111827] text-white shadow-xl'
-                  : 'bg-white text-[#4b5563] border border-[#e5e7eb] hover:bg-[#f1f5f9]'
+                ? 'bg-[#111827] text-white shadow-xl'
+                : 'bg-white text-[#4b5563] border border-[#e5e7eb] hover:bg-[#f1f5f9]'
                 }`}
             >
               Sheet Two
@@ -101,8 +109,8 @@ export default function AdminDrawer() {
                 key={item.id}
                 onClick={item.action}
                 className={`h-10 w-full flex items-center justify-start gap-3 px-3 rounded-lg transition-all duration-150 ease-in-out group ${item.active
-                    ? 'bg-[#eef2ff] text-[#111827]'
-                    : 'text-[#4b5563] hover:bg-[#f1f5f9]'
+                  ? 'bg-[#eef2ff] text-[#111827]'
+                  : 'text-[#4b5563] hover:bg-[#f1f5f9]'
                   }`}
               >
                 <item.icon

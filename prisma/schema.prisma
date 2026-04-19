@@ -1,0 +1,37 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model RestaurantInfo {
+  id      Int    @id @default(1)
+  name    String
+  tagline String
+  phone   String
+  email   String
+  address String
+}
+
+model Section {
+  id    String  @id
+  title String
+  image String?
+  fit   String?
+  page  String // "page1" or "page2"
+  order Int
+  items Item[]
+}
+
+model Item {
+  id          String  @id
+  name        String
+  description String?
+  price       String
+  order       Int
+  sectionId   String
+  section     Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+}
