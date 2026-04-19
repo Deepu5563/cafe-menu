@@ -2,97 +2,173 @@
 
 import React, { createContext, useContext, useState, useEffect, useSyncExternalStore } from 'react';
 import { INITIAL_MENU_DATA } from '@/lib/initialData';
+import { 
+  fetchFullMenu, 
+  syncLocalStorageToDB, 
+  updateItemInDB, 
+  updateSectionInDB,
+  deleteItemFromDB,
+  addItemAction,
+  addSectionAction,
+  deleteSectionAction,
+  resetDatabaseToInitial 
+} from '@/app/actions/menuActions';
 
 const MenuContext = createContext();
 
-// THE ARCHITECTURAL FIX: useSyncExternalStore
-// This is the React 19 recommended way to detect hydration/client-side state.
-// It avoids the "Cascading Render" error by providing a server value and a client value
-// that React reconciles during the initial hydration pass.
+/**
+ * ARCHITECTURAL: useSyncExternalStore
+ * React 19 recommended way to detect hydration/client-side state.
+ * Avoids "Cascading Render" errors by reconcilling server/client snapshots.
+ */
 function useIsMounted() {
   return useSyncExternalStore(
-    () => () => {}, // No-op subscription (mount state never changes after initial mount)
-    () => true,     // Client snapshot: always true
-    () => false     // Server snapshot: always false (during hydration)
+    () => () => {},
+    () => true,
+    () => false
   );
 }
 
 export const MenuProvider = ({ children }) => {
-  // Use Lazy Initializer to satisfy React 19 / Next 15+ Strict Mode
-  const [menuData, setMenuData] = useState(() => {
-    if (typeof window === 'undefined') return INITIAL_MENU_DATA;
-
-    try {
-      const savedData = localStorage.getItem('urban_bites_menu_v3');
-      if (!savedData) return INITIAL_MENU_DATA;
-
-      const parsed = JSON.parse(savedData);
-      
-      const syncFromInitial = (savedArr, initialArr) => {
-        const initialMap = new Map(initialArr.map(s => [s.id, s]));
-        const updatedSaved = savedArr.map(s => {
-          const initialMatch = initialMap.get(s.id);
-          if (!initialMatch) return s;
-          return { ...initialMatch, ...s, items: s.items };
-        });
-        const savedIds = new Set(savedArr.map(s => s.id));
-        const brandNew = initialArr.filter(s => !savedIds.has(s.id));
-        return [...updatedSaved, ...brandNew];
-      };
-
-      const TARGET_VERSION = 35;
-      if (parsed.version === TARGET_VERSION) return parsed;
-
-      return {
-        ...parsed,
-        restaurantName: INITIAL_MENU_DATA.restaurantName,
-        tagline: INITIAL_MENU_DATA.tagline,
-        contact: INITIAL_MENU_DATA.contact,
-        page1: syncFromInitial(parsed.page1 || [], INITIAL_MENU_DATA.page1),
-        page2: syncFromInitial(parsed.page2 || [], INITIAL_MENU_DATA.page2),
-        version: TARGET_VERSION
-      };
-    } catch (e) {
-      console.error("Initialization Sync Failed:", e);
-      return INITIAL_MENU_DATA;
-    }
-  });
-
+  const [menuData, setMenuData] = useState(INITIAL_MENU_DATA);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activePage, setActivePage] = useState('page1');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDbLoaded, setIsDbLoaded] = useState(false);
   
-  // Use the new Pro-grade hydration hook
-  const isLoaded = useIsMounted();
+  const isMounted = useIsMounted();
 
-  // Pure persistence effect - no state setting here, just side-effects
+  // Unified Hydration & Database Migration
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('urban_bites_menu_v3', JSON.stringify(menuData));
-    }
-  }, [menuData]);
+    if (!isMounted) return;
 
-  const updateSection = (page, sectionId, updates) => {
+    const initData = async () => {
+      try {
+        const dbData = await fetchFullMenu();
+        
+        if (dbData) {
+          setMenuData(dbData);
+          setIsDbLoaded(true);
+          return;
+        }
+
+        // DB Migration Fallback
+        const localRaw = localStorage.getItem('urban_bites_menu_v3');
+        if (localRaw) {
+          const localData = JSON.parse(localRaw);
+          const result = await syncLocalStorageToDB(localData);
+          if (result.success) setMenuData(localData);
+        } else {
+          await syncLocalStorageToDB(INITIAL_MENU_DATA);
+          setMenuData(INITIAL_MENU_DATA);
+        }
+        
+        setIsDbLoaded(true);
+      } catch (e) {
+        console.error("[Context] Hydration Error:", e);
+        setMenuData(INITIAL_MENU_DATA);
+        setIsDbLoaded(true);
+      }
+    };
+
+    initData();
+  }, [isMounted]);
+
+  const addSection = async (page) => {
+    const order = menuData[page].length;
+    const result = await addSectionAction(page, order);
+    if (result.success && result.section) {
+      setMenuData(prev => ({
+        ...prev,
+        [page]: [...prev[page], { ...result.section, items: [] }]
+      }));
+    }
+  };
+
+  const deleteSection = async (page, sectionId) => {
+    if (!window.confirm("Are you sure you want to delete this section?")) return;
+    setMenuData(prev => ({
+      ...prev,
+      [page]: prev[page].filter(s => s.id !== sectionId)
+    }));
+    await deleteSectionAction(sectionId);
+  };
+
+  const addItem = async (page, sectionId) => {
+    const section = menuData[page].find(s => s.id === sectionId);
+    if (!section) return;
+    const order = (section.items || []).length;
+
+    const result = await addItemAction(sectionId, order);
+    if (result.success && result.item) {
+      setMenuData(prev => ({
+        ...prev,
+        [page]: prev[page].map(s => 
+          s.id === sectionId ? { ...s, items: [...(s.items || []), result.item] } : s
+        )
+      }));
+    }
+  };
+
+  const updateSection = async (page, sectionId, updates) => {
+    // Optimistic Update
     setMenuData(prev => ({
       ...prev,
       [page]: prev[page].map(section => 
         section.id === sectionId ? { ...section, ...updates } : section
       )
     }));
+    // DB Update
+    await updateSectionInDB(sectionId, updates);
   };
 
-  const updateMenuItem = (page, sectionId, itemId, updates) => {
+  const updateMenuItem = async (page, sectionId, itemId, updates) => {
+    // Optimistic Update
     setMenuData(prev => ({
       ...prev,
       [page]: prev[page].map(section => 
         section.id === sectionId ? {
           ...section,
-          items: section.items.map(item => 
+          items: (section.items || []).map(item => 
             item.id === itemId ? { ...item, ...updates } : item
           )
         } : section
       )
     }));
+
+    // DB Update
+    try {
+      const result = await updateItemInDB(itemId, updates);
+      if (result && !result.success) {
+        alert("CRITICAL ERROR: " + (result.error || "Failed to save changes."));
+      }
+    } catch (e) {
+      alert("NETWORK ERROR: Could not reach the server.");
+    }
+  };
+
+  const deleteMenuItem = async (page, sectionId, itemId) => {
+    setMenuData(prev => ({
+      ...prev,
+      [page]: prev[page].map(section => 
+        section.id === sectionId ? {
+          ...section,
+          items: (section.items || []).filter(item => item.id !== itemId)
+        } : section
+      )
+    }));
+    await deleteItemFromDB(itemId);
+  };
+
+  const reseedData = async () => {
+    if(window.confirm('Restore default menu? This PERMANENTLY wipes the database.')) {
+      const result = await resetDatabaseToInitial();
+      if (result.success) {
+        setMenuData(INITIAL_MENU_DATA);
+        localStorage.removeItem('urban_bites_menu_v3');
+        window.location.reload();
+      }
+    }
   };
 
   const updateContact = (updates) => {
@@ -100,22 +176,15 @@ export const MenuProvider = ({ children }) => {
       ...prev,
       contact: { ...prev.contact, ...updates }
     }));
+    // Future: Add updateContactInDB if needed
   };
 
   return (
     <MenuContext.Provider value={{ 
-      menuData, 
-      setMenuData, 
-      updateSection, 
-      updateMenuItem,
-      updateContact,
-      isAdmin, 
-      setIsAdmin,
-      activePage,
-      setActivePage,
-      isLoaded,
-      isDrawerOpen,
-      setIsDrawerOpen
+      menuData, setMenuData, addSection, deleteSection, addItem,
+      updateSection, updateMenuItem, deleteMenuItem, updateContact, reseedData,
+      isAdmin, setIsAdmin, activePage, setActivePage, isDrawerOpen, setIsDrawerOpen,
+      isLoaded: isMounted && isDbLoaded,
     }}>
       {children}
     </MenuContext.Provider>

@@ -12,10 +12,10 @@ export default function MenuSection({ page, section, index }) {
   const { isAdmin, updateSection, deleteSection, addItem } = useMenu();
 
   return (
-    <div className="mb-0 break-inside-avoid w-full h-full flex flex-col">
-      <div className="menu-card flex flex-col px-5 py-3 w-full">
+    <div className="mb-0 break-inside-avoid w-full h-fit flex flex-col">
+      <div className="menu-card flex flex-col px-5 py-3 print:px-3 print:py-2 w-full h-fit">
         {/* Section Image - High End visual reference */}
-        <ImageUploader 
+        <ImageUploader
           currentImage={section.image}
           fit={section.fit || 'cover'}
           isAdmin={isAdmin}
@@ -24,7 +24,7 @@ export default function MenuSection({ page, section, index }) {
         />
 
         {/* Section Header - High Precision Styling */}
-        <div className="flex flex-col mb-3 w-full">
+        <div className="flex flex-col mb-1.5 print:mb-1 w-full">
           <div className="flex items-center justify-between w-full">
             <EditableText
               value={section.title}
@@ -41,7 +41,7 @@ export default function MenuSection({ page, section, index }) {
             )}
           </div>
           {/* Subtle Precise Divider */}
-          <div className="w-full h-px bg-card-border mt-1 mb-1" />
+          <div className="w-full h-px bg-card-border mt-0.5 mb-1" />
         </div>
 
         {/* Items List - Scalable and Balanced */}
@@ -61,12 +61,12 @@ export default function MenuSection({ page, section, index }) {
         </div>
 
         {isAdmin && (
-          <div className="mt-6 w-full flex justify-center">
+          <div className="mt-2 w-full flex justify-center">
             <button
               onClick={() => addItem(page, section.id)}
-              className="flex items-center gap-2 text-[9px] text-muted-green hover:text-deep-green transition-all font-bold uppercase tracking-widest border border-soft-gold/30 px-4 py-2 rounded-lg hover:bg-soft-gold/10 no-print"
+              className="flex items-center gap-1.5 text-[8.5px] text-muted-green hover:text-deep-green transition-all font-bold uppercase tracking-widest border border-soft-gold/30 px-3 py-1 rounded-md hover:bg-soft-gold/10 no-print"
             >
-              <PlusCircle size={14} />
+              <PlusCircle size={12} />
               Add Item
             </button>
           </div>

@@ -6,28 +6,28 @@ import EditableText from './EditableText';
 import { Trash2 } from 'lucide-react';
 
 export default function MenuItem({ page, sectionId, item, isLast, hidePrice }) {
-  const { isAdmin, updateItem, deleteItem } = useMenu();
+  const { isAdmin, updateMenuItem, deleteMenuItem } = useMenu();
 
   return (
-    <div className={`group relative flex flex-col w-full text-left py-[2.5px] ${!isLast ? 'border-b border-dotted border-[rgba(31,61,43,0.3)]' : 'pb-0'}`}>
-      <div className="flex justify-between items-baseline w-full gap-2">
+    <div className={`group relative flex flex-col w-full text-left py-0.5 print:py-[1px] ${!isLast ? 'border-b border-dotted border-[rgba(31,61,43,0.15)]' : 'pb-0'}`}>
+      <div className="flex justify-between items-baseline w-full gap-1.5">
         <EditableText
           value={item.name}
-          onSave={(val) => updateItem(page, sectionId, item.id, { name: val })}
-          className="text-[13.5px] font-sans font-medium text-deep-green uppercase tracking-wide text-left leading-snug flex-1"
+          onSave={(val) => updateMenuItem(page, sectionId, item.id, { name: val })}
+          className="text-[13px] font-sans font-medium text-deep-green uppercase tracking-wide text-left leading-snug flex-1"
         />
 
         {!hidePrice && (
           <div className="flex items-center min-w-[50px] justify-end pr-2">
-            <span className="text-[9px] text-soft-gold font-bold mr-1 self-center">₹</span>
+            <span className="text-[9px] text-soft-gold font-bold mr-0.5 self-center">₹</span>
             <EditableText
               value={item.price}
-              onSave={(val) => updateItem(page, sectionId, item.id, { price: val })}
-              className="text-[14.5px] font-serif font-bold text-deep-green text-right tabular-nums tracking-normal flex-none"
+              onSave={(val) => updateMenuItem(page, sectionId, item.id, { price: val })}
+              className="text-[14px] font-serif font-bold text-deep-green text-right tabular-nums tracking-normal flex-none"
             />
             {isAdmin && (
               <button
-                onClick={() => deleteItem(page, sectionId, item.id)}
+                onClick={() => deleteMenuItem && deleteMenuItem(page, sectionId, item.id)}
                 className="ml-2 p-1 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-all no-print flex-none"
               >
                 <Trash2 size={12} />
@@ -37,7 +37,7 @@ export default function MenuItem({ page, sectionId, item, isLast, hidePrice }) {
         )}
         {hidePrice && isAdmin && (
           <button
-            onClick={() => deleteItem(page, sectionId, item.id)}
+            onClick={() => deleteMenuItem && deleteMenuItem(page, sectionId, item.id)}
             className="ml-2 p-1 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-all no-print flex-none"
           >
             <Trash2 size={12} />
@@ -50,7 +50,7 @@ export default function MenuItem({ page, sectionId, item, isLast, hidePrice }) {
           value={item.description}
           onSave={(val) => updateItem(page, sectionId, item.id, { description: val })}
           useTextarea={true}
-          className="text-[9px] text-muted-green/70 font-sans tracking-wide leading-relaxed block mt-0.5 max-w-[90%] text-left"
+          className="text-[9px] text-muted-green/60 font-sans tracking-wide leading-snug block mt-0 max-w-[90%] text-left"
         />
       )}
     </div>
