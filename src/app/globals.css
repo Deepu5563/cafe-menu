@@ -5,15 +5,12 @@
   --sage: #E6EFE9;
   --cream: #FDFBF7;
   --beige: #F8F5EF;
-  /* Refined beige */
   --deep-green: #1F3D2B;
   --muted-green: #4A6753;
   --dark-gray: #2E2E2E;
   --gold: #C8A96A;
   --soft-gold: #d8cbb5;
-  /* Precise requested color */
   --card-border: #e6dcc9;
-  /* Precise requested color */
 
   --background: var(--cream);
   --foreground: var(--deep-green);
@@ -53,63 +50,95 @@
     width: 100% !important;
     min-height: auto;
     margin: 0 !important;
-    background: transparent !important;
-    /* Digital view is transparent to utilize full dashboard space */
-    border: none !important;
-    /* Removed 'paper' borders on screen */
-    box-shadow: none !important;
     box-sizing: border-box !important;
-    padding: 0px 0px 5px 0px !important;
+    padding: 20px !important;
+    border: 4px double var(--soft-gold) !important;
+    border-radius: 8px !important;
+    margin-bottom: 20px !important;
+    background: var(--cream) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
 
-    /* Lock back to A4 Landscape ONLY for printing */
+    /* SURGICAL PRINT LOCK - Full Scale A4 Neat View */
     @media print {
-      background: var(--cream) !important;
       width: 297mm !important;
       height: 210mm !important;
       min-height: 210mm !important;
       max-height: 210mm !important;
-      padding: 5mm 8mm !important;
-      border: 1px solid var(--soft-gold) !important;
+      padding: 6mm 8mm !important;
+      border: 4px double var(--soft-gold) !important;
       box-shadow: none !important;
       display: flex !important;
       flex-direction: column !important;
       overflow: hidden !important;
+      background: white !important;
+      /* Remove Shrunken scaling for Neat & Clean full-sheet look */
+      transform: none !important;
     }
-  }
 
-  /* Surgical Print Overrides - Zero JSX changes */
-  @media print {
-    .menu-card {
-      padding: 4px 10px !important;
-      margin-bottom: 5px !important;
+    /* Hide Sidebar & UI elements during print */
+    @media print {
+      .no-print, 
+      [class*="AdminDrawer"], 
+      [class*="AdminBar"], 
+      [class*="PageSwitcher"],
+      button {
+        display: none !important;
+      }
     }
-    .menu-card img {
-      max-height: 75px !important;
-      margin-bottom: 2px !important;
-    }
-    .menu-card div > div > span, 
-    .menu-card div > div > div > span {
-      font-size: 11px !important;
-    }
-    .menu-card [class*="text-[18px]"] {
-      font-size: 14px !important;
-    }
-    .print-grid {
-      gap: 12px !important;
+
+    /* Aesthetic Print Assets Overrides */
+    @media print {
+      .menu-card {
+        padding: 5px 12px !important;
+        margin-bottom: 2px !important;
+        border: 1px solid var(--soft-gold) !important;
+        background: #FDFBF7 !important;
+      }
+
+      .menu-card img {
+        height: 60px !important;
+        max-height: 60px !important;
+        width: 100% !important;
+        object-fit: cover !important;
+        margin-bottom: 4px !important;
+        border-radius: 4px !important;
+      }
+
+      /* Clean, Large Headers */
+      .menu-card [class*="text-[18px]"],
+      .menu-card h3 {
+        font-size: 13px !important;
+        margin-bottom: 3px !important;
+        letter-spacing: 0.08em !important;
+        font-weight: 800 !important;
+      }
+
+      /* Legible Menu Items */
+      .menu-card div > div > span, 
+      .menu-card div > div > div > span,
+      .menu-card span {
+        font-size: 10px !important;
+        line-height: 1.2 !important;
+      }
+
+      /* Vertical Gaps to fill Page */
+      .grid.print\:grid-cols-5 {
+        gap-x: 10px !important;
+        gap-y: 8px !important;
+      }
     }
   }
 
   .menu-card {
     background: var(--beige);
     border-radius: 12px;
-    /* Restored original premium curvature */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     border: 1px solid var(--card-border);
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
-    padding: 12px 16px !important;
-    /* Balanced density with original feel */
+    padding: 20px 24px !important;
+    padding-bottom: 24px !important;
     width: 100%;
   }
 
@@ -117,6 +146,11 @@
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
     transform: translateY(-1px);
   }
+
+}
+
+.print-only {
+  display: none;
 }
 
 @media print {
@@ -129,8 +163,8 @@
   body {
     margin: 0 !important;
     padding: 0 !important;
-    height: auto !important;
-    overflow: visible !important;
+    height: 210mm !important;
+    overflow: hidden !important;
     background: white !important;
   }
 
@@ -141,47 +175,6 @@
   .print-only {
     display: block !important;
   }
-
-  /* RIGID LANDSCAPE PRINT SHELL */
-  .a4-print-sheet {
-    width: 297mm !important;
-    min-height: 210mm !important;
-    padding: 6mm 10mm !important;
-    margin: 0 !important;
-    background: #FDFBF7 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: flex-start !important;
-    position: relative !important;
-    overflow: hidden !important;
-  }
-
-  .print-grid {
-    display: grid !important;
-    grid-template-columns: repeat(4, 1fr) !important;
-    gap: 15px !important;
-  }
-
-  .print-image-compact img {
-    height: 75px !important;
-    /* Shorter for Landscape */
-    object-fit: cover !important;
-  }
-
-  .print-footer {
-    width: 100% !important;
-    border-top: 1px solid #d8cbb5 !important;
-    padding-top: 12px !important;
-    /* Increased for vertical spread */
-    padding-bottom: 8px !important;
-    font-size: 8.5px !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.15em !important;
-  }
-}
-
-.print-only {
-  display: none;
 }
 
 html,
@@ -189,6 +182,7 @@ body {
   padding: 0;
   margin: 0;
   box-sizing: border-box;
+  min-height: 100vh;
 }
 
 * {
@@ -197,10 +191,8 @@ body {
 
 body {
   background-color: var(--sage);
-  /* Background for the dashboard view */
   color: var(--foreground);
   font-family: var(--font-sans);
-  min-height: 100vh;
 }
 
 h1,

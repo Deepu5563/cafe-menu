@@ -40,7 +40,7 @@ export const MenuProvider = ({ children }) => {
         return [...updatedSaved, ...brandNew];
       };
 
-      const TARGET_VERSION = 35;
+      const TARGET_VERSION = 50;
       if (parsed.version === TARGET_VERSION) return parsed;
 
       return {
