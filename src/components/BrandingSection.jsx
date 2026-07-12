@@ -11,7 +11,7 @@ export default function BrandingSection() {
     <div className="w-full flex flex-col justify-center items-center py-0">
       <div className="text-center">
 
-        <h1 className="text-[22px] md:text-[24px] font-serif font-extrabold tracking-[0.2em] text-deep-green leading-tight uppercase">
+        <h1 className="text-[22px] md:text-[24px] font-serif font-extrabold tracking-[0.2em] text-[#FFD400] print:text-[#111827] leading-tight uppercase">
           <EditableText
             value={menuData.restaurantName}
             onSave={(val) => updateMenuData({ restaurantName: val })}

@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { MenuProvider, useMenu } from '@/context/MenuContext';
 import MenuPage from '@/components/MenuPage';
 import MenuSection from '@/components/MenuSection';
@@ -8,50 +8,47 @@ import BrandingSection from '@/components/BrandingSection';
 import PageSwitcher from '@/components/PageSwitcher';
 import AdminBar from '@/components/AdminBar';
 import AdminDrawer from '@/components/AdminDrawer';
+import { GripVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function MenuApp() {
-  const { menuData, activePage, isLoaded } = useMenu();
+  const { menuData, activePage, isLoaded, isAdmin, reorderSections } = useMenu();
+  const [draggedId, setDraggedId] = useState(null);
+  const [dragOverCol, setDragOverCol] = useState(null);
 
   // Pool all sections and remove Customized Pizza
   const allSections = Array.from(
     new Map([...menuData.page1, ...menuData.page2].map(s => [s.id, s])).values()
   ).filter(s => s.title.toLowerCase() !== 'customized pizza');
 
-  // Unified 5-Column Distribution for Screen & Print
-  const getColumns = (sections) => {
-    // Column 1: Pizza, Wraps
-    const col1 = [
-      ...sections.filter(s => s.title.toLowerCase().includes('pizza')),
-      ...sections.filter(s => s.title.toLowerCase().includes('wrap'))
-    ];
-    // Column 2: Burger, Fries
-    const col2 = [
-      ...sections.filter(s => s.title.toLowerCase().includes('grilled burger')),
-      ...sections.filter(s => s.title.toLowerCase().includes('quick bites'))
-    ];
-    // Column 3: Sandwich, Shawarma, Cold Coffee
-    const col3 = [
-      ...sections.filter(s => s.title.toLowerCase().includes('sandwich')),
-      ...sections.filter(s => s.title.toLowerCase().includes('shawarma')),
-      ...sections.filter(s => s.title.toLowerCase().includes('coffee'))
-    ];
-    // Column 4: Pasta, Momos, Special
-    const col4 = [
-      ...sections.filter(s => s.title.toLowerCase().includes('pasta')),
-      ...sections.filter(s => s.title.toLowerCase().includes('momo')),
-      ...sections.filter(s => s.title.toLowerCase().includes('special'))
-    ];
-    // Column 5: Mojito, Juice, Extras
-    const col5 = [
-      ...sections.filter(s => s.title.toLowerCase().includes('mojito')),
-      ...sections.filter(s => s.title.toLowerCase().includes('juice')),
-      ...sections.filter(s => s.title.toLowerCase().includes('extra'))
-    ];
-    return [col1, col2, col3, col4, col5];
-  };
+  // Manual 5-column layout driven by each section's col/order (set by drag & drop).
+  const columns = [[], [], [], [], []];
+  for (const s of allSections) {
+    const c = Math.min(4, Math.max(0, s.col ?? 0));
+    columns[c].push(s);
+  }
+  columns.forEach(col => col.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
 
-  const columns = getColumns(allSections);
+  // Move the dragged section into targetCol, before `beforeId`
+  // (or to the end of the column when beforeId is null).
+  const handleDrop = (targetCol, beforeId = null) => {
+    setDragOverCol(null);
+    const id = draggedId;
+    setDraggedId(null);
+    if (!id || beforeId === id) return;
+    const dragged = allSections.find(s => s.id === id);
+    if (!dragged) return;
+
+    const next = columns.map(col => col.filter(s => s.id !== id));
+    const target = next[targetCol];
+    let insertAt = target.length;
+    if (beforeId) {
+      const bi = target.findIndex(s => s.id === beforeId);
+      if (bi >= 0) insertAt = bi;
+    }
+    target.splice(insertAt, 0, dragged);
+    reorderSections(next);
+  };
 
   if (!isLoaded) {
     return (
@@ -80,13 +77,44 @@ function MenuApp() {
                     <div className="mb-0.5">
                       <BrandingSection />
                     </div>
-                    
-                    {/* Unified Grid - Standardizing Screen & Print Layout Order */}
+
+                    {isAdmin && (
+                      <div className="mb-1 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-gold no-print">
+                        Drag the handle on a section to move it to any column
+                      </div>
+                    )}
+
+                    {/* Manual 5-column grid — drag & drop in Edit Mode */}
                     <div className="grid grid-cols-1 md:grid-cols-5 print:grid-cols-5 gap-x-4 gap-y-2 flex-1 min-h-0 overflow-y-visible pr-1 print:overflow-visible items-stretch pb-3">
                       {columns.map((column, colIdx) => (
-                        <div key={`col-${colIdx}`} className="flex flex-col gap-2 print:gap-3 justify-between h-full">
+                        <div
+                          key={`col-${colIdx}`}
+                          onDragOver={isAdmin ? (e) => { e.preventDefault(); setDragOverCol(colIdx); } : undefined}
+                          onDrop={isAdmin ? (e) => { e.preventDefault(); handleDrop(colIdx, null); } : undefined}
+                          className={`flex flex-col gap-2 print:gap-3 justify-between h-full rounded-lg transition-colors ${
+                            isAdmin && dragOverCol === colIdx ? 'bg-gold/10 outline outline-2 outline-dashed outline-gold/50' : ''
+                          }`}
+                        >
                           {column.map((section, index) => (
-                            <MenuSection key={section.id} page="page1" section={section} index={index} />
+                            <div
+                              key={section.id}
+                              onDragOver={isAdmin ? (e) => { e.preventDefault(); e.stopPropagation(); setDragOverCol(colIdx); } : undefined}
+                              onDrop={isAdmin ? (e) => { e.preventDefault(); e.stopPropagation(); handleDrop(colIdx, section.id); } : undefined}
+                              className={`relative ${draggedId === section.id ? 'opacity-40' : ''}`}
+                            >
+                              {isAdmin && (
+                                <div
+                                  draggable
+                                  onDragStart={(e) => { setDraggedId(section.id); e.dataTransfer.effectAllowed = 'move'; }}
+                                  onDragEnd={() => { setDraggedId(null); setDragOverCol(null); }}
+                                  title="Drag to move this section"
+                                  className="absolute left-1 top-1 z-30 p-1 rounded-md bg-gold text-deep-green shadow-md cursor-grab active:cursor-grabbing no-print"
+                                >
+                                  <GripVertical size={14} />
+                                </div>
+                              )}
+                              <MenuSection page="page1" section={section} index={index} />
+                            </div>
                           ))}
                         </div>
                       ))}

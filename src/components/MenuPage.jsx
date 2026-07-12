@@ -14,7 +14,7 @@ export default function MenuPage({ pageKey, children }) {
       </div>
 
       {/* Strict Single-Line Baseline Footer */}
-      <div className="mt-auto pt-3 pb-2 border-t border-soft-gold/30 flex items-center justify-between w-full px-4 relative z-10 text-[12px] font-black uppercase tracking-[0.1em] text-[#111827] print-footer-neat whitespace-nowrap overflow-hidden">
+      <div className="mt-auto pt-3 pb-2 border-t border-soft-gold/30 flex items-center justify-between w-full px-4 relative z-10 text-[12px] font-black uppercase tracking-[0.1em] text-deep-green print:text-[#111827] print-footer-neat whitespace-nowrap overflow-hidden">
         <div className="flex items-center gap-2 justify-between w-full">
           <span className="shrink-0">Parcel Charges 10/-</span>
           <div className="w-1.5 h-1.5 bg-soft-gold/50 rounded-full shrink-0" />

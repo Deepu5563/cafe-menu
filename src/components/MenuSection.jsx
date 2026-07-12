@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useMenu } from '@/context/MenuContext';
+import { useTheme } from '@/context/ThemeContext';
 import EditableText from './EditableText';
 import MenuItem from './MenuItem';
 import ImageUploader from './ImageUploader';
@@ -10,18 +11,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MenuSection({ page, section, index }) {
   const { isAdmin, updateSection, deleteSection, addItem } = useMenu();
+  const { showImages } = useTheme();
 
   return (
     <div className="mb-0 break-inside-avoid w-full h-fit flex flex-col">
       <div className="menu-card flex flex-col px-5 py-3 print:px-3 print:py-2 w-full h-fit">
-        {/* Section Image - High End visual reference */}
-        <ImageUploader
-          currentImage={section.image}
-          fit={section.fit || 'cover'}
-          isAdmin={isAdmin}
-          onSave={(url) => updateSection(page, section.id, { image: url })}
-          onToggleFit={() => updateSection(page, section.id, { fit: section.fit === 'contain' ? 'cover' : 'contain' })}
-        />
+        {/* Section Image - hidden when images are toggled off (URLs kept in DB) */}
+        {showImages && (
+          <ImageUploader
+            currentImage={section.image}
+            fit={section.fit || 'cover'}
+            isAdmin={isAdmin}
+            onSave={(url) => updateSection(page, section.id, { image: url })}
+            onToggleFit={() => updateSection(page, section.id, { fit: section.fit === 'contain' ? 'cover' : 'contain' })}
+          />
+        )}
 
         {/* Section Header - High Precision Styling */}
         <div className="flex flex-col mb-1.5 print:mb-1 w-full">
@@ -29,7 +33,7 @@ export default function MenuSection({ page, section, index }) {
             <EditableText
               value={section.title}
               onSave={(val) => updateSection(page, section.id, { title: val })}
-              className="text-[18px] font-serif text-deep-green tracking-[0.15em] font-semibold uppercase whitespace-nowrap"
+              className="text-[18px] font-serif text-[#FF3B30] tracking-[0.15em] font-semibold uppercase whitespace-nowrap"
             />
             {isAdmin && (
               <button

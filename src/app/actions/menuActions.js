@@ -133,6 +133,28 @@ export async function syncLocalStorageToDB(menuData) {
   }
 }
 
+export async function saveRestaurantInfo(info) {
+  try {
+    const data = {
+      name: info.name || "",
+      tagline: info.tagline || "",
+      phone: info.phone || "",
+      email: info.email || "",
+      address: info.address || "",
+    };
+    await prisma.restaurantInfo.upsert({
+      where: { id: 1 },
+      update: data,
+      create: { id: 1, ...data },
+    });
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("[Database] Info Save Error:", error);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function updateItemInDB(itemId, updates) {
   try {
     await prisma.item.update({
@@ -143,6 +165,25 @@ export async function updateItemInDB(itemId, updates) {
     return { success: true };
   } catch (error) {
     console.error("[Database] Update Error:", error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function reorderSectionsAction(arrangement) {
+  // arrangement: [{ id, col, order }]
+  try {
+    await prisma.$transaction(
+      arrangement.map((a) =>
+        prisma.section.updateMany({
+          where: { id: a.id },
+          data: { col: a.col, order: a.order },
+        })
+      )
+    );
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("[Database] Reorder Error:", error);
     return { success: false, error: error.message };
   }
 }

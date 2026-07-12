@@ -1,0 +1,18 @@
+# Local development database only. Production uses Neon (see Vercel DATABASE_URL).
+# Start with:  docker compose up -d
+services:
+  db:
+    image: postgres:16
+    container_name: cafe-menu-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cafe
+      POSTGRES_PASSWORD: cafe_local_dev
+      POSTGRES_DB: cafemenu
+    ports:
+      - "5433:5432"
+    volumes:
+      - cafe_menu_pgdata:/var/lib/postgresql/data
+
+volumes:
+  cafe_menu_pgdata:

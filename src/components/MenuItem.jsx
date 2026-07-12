@@ -48,7 +48,7 @@ export default function MenuItem({ page, sectionId, item, isLast, hidePrice }) {
       {item.description && (
         <EditableText
           value={item.description}
-          onSave={(val) => updateItem(page, sectionId, item.id, { description: val })}
+          onSave={(val) => updateMenuItem(page, sectionId, item.id, { description: val })}
           useTextarea={true}
           className="text-[9px] text-muted-green/60 font-sans tracking-wide leading-snug block mt-0 max-w-[90%] text-left"
         />

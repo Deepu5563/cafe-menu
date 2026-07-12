@@ -73,12 +73,12 @@ export default function EditableText({
   }
 
   return (
-    <span 
+    <span
       onClick={() => setIsEditing(true)}
-      className={`cursor-text hover:text-gold transition-colors duration-200 ${className}`}
+      className={`cursor-text rounded-sm hover:bg-gold/10 border-b border-dashed border-gold/50 hover:border-gold transition-colors duration-200 ${className}`}
       title="Click to edit"
     >
-      {value || <span className="opacity-20 italic">{placeholder}</span>}
+      {value || <span className="opacity-30 italic">{placeholder}</span>}
     </span>
   );
 }

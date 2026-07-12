@@ -137,8 +137,8 @@
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
-    padding: 20px 24px !important;
-    padding-bottom: 24px !important;
+    padding: 12px 16px !important;
+    padding-bottom: 14px !important;
     width: 100%;
   }
 
@@ -147,6 +147,19 @@
     transform: translateY(-1px);
   }
 
+}
+
+/* Bold menu typography (user preference: bold everything) */
+.menu-card,
+.menu-card * {
+  font-weight: 700 !important;
+}
+
+.a4-page h1,
+.a4-page h2,
+.a4-page h3,
+.menu-card h3 {
+  font-weight: 800 !important;
 }
 
 .print-only {

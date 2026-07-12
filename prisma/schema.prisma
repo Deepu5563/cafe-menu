@@ -7,6 +7,17 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model Theme {
+  id         Int     @id @default(1)
+  background String  @default("#E6EFE9")
+  heading    String  @default("#1F3D2B")
+  accent     String  @default("#C8A96A")
+  softAccent String  @default("#d8cbb5")
+  card       String  @default("#F8F5EF")
+  cardBorder String  @default("#e6dcc9")
+  showImages Boolean @default(true)
+}
+
 model RestaurantInfo {
   id      Int    @id @default(1)
   name    String
@@ -22,7 +33,8 @@ model Section {
   image String?
   fit   String?
   page  String // "page1" or "page2"
-  order Int
+  col   Int     @default(0) // manual column index 0-4 (drag & drop placement)
+  order Int // position within the column
   items Item[]
 }
 

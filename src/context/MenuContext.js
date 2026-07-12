@@ -5,13 +5,15 @@ import { INITIAL_MENU_DATA } from '@/lib/initialData';
 import { 
   fetchFullMenu, 
   syncLocalStorageToDB, 
-  updateItemInDB, 
+  updateItemInDB,
   updateSectionInDB,
   deleteItemFromDB,
   addItemAction,
   addSectionAction,
   deleteSectionAction,
-  resetDatabaseToInitial 
+  resetDatabaseToInitial,
+  saveRestaurantInfo,
+  reorderSectionsAction
 } from '@/app/actions/menuActions';
 
 const MenuContext = createContext();
@@ -160,6 +162,32 @@ export const MenuProvider = ({ children }) => {
     await deleteItemFromDB(itemId);
   };
 
+  // Persist a new drag-and-drop arrangement.
+  // `columns` is an array of 5 arrays of section objects (in their new order).
+  const reorderSections = async (columns) => {
+    const arrangement = [];
+    columns.forEach((col, c) => {
+      col.forEach((s, o) => arrangement.push({ id: s.id, col: c, order: o }));
+    });
+    const posById = new Map(arrangement.map((a) => [a.id, a]));
+
+    // Optimistic: write new col/order onto sections in whichever page array they live.
+    setMenuData((prev) => {
+      const apply = (arr) =>
+        arr.map((s) =>
+          posById.has(s.id)
+            ? { ...s, col: posById.get(s.id).col, order: posById.get(s.id).order }
+            : s
+        );
+      return { ...prev, page1: apply(prev.page1), page2: apply(prev.page2) };
+    });
+
+    const result = await reorderSectionsAction(arrangement);
+    if (result && !result.success) {
+      alert("Could not save the new layout: " + (result.error || "unknown error"));
+    }
+  };
+
   const reseedData = async () => {
     if(window.confirm('Restore default menu? This PERMANENTLY wipes the database.')) {
       const result = await resetDatabaseToInitial();
@@ -171,18 +199,35 @@ export const MenuProvider = ({ children }) => {
     }
   };
 
+  // Persist restaurant identity (name, tagline, contact) to the DB.
+  const persistInfo = (data) => {
+    saveRestaurantInfo({
+      name: data.restaurantName,
+      tagline: data.tagline,
+      phone: data.contact?.phone,
+      email: data.contact?.email,
+      address: data.contact?.address,
+    });
+  };
+
+  // Update top-level branding fields (restaurantName, tagline) + persist.
+  const updateMenuData = (updates) => {
+    const next = { ...menuData, ...updates };
+    setMenuData(next);
+    persistInfo(next);
+  };
+
   const updateContact = (updates) => {
-    setMenuData(prev => ({
-      ...prev,
-      contact: { ...prev.contact, ...updates }
-    }));
-    // Future: Add updateContactInDB if needed
+    const next = { ...menuData, contact: { ...menuData.contact, ...updates } };
+    setMenuData(next);
+    persistInfo(next);
   };
 
   return (
     <MenuContext.Provider value={{ 
       menuData, setMenuData, addSection, deleteSection, addItem,
-      updateSection, updateMenuItem, deleteMenuItem, updateContact, reseedData,
+      updateSection, updateMenuItem, deleteMenuItem, updateMenuData, updateContact, reseedData,
+      reorderSections,
       isAdmin, setIsAdmin, activePage, setActivePage, isDrawerOpen, setIsDrawerOpen,
       isLoaded: isMounted && isDbLoaded,
     }}>
